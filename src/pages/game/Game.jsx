@@ -46,10 +46,10 @@ const Game = () => {
     const loggedIn = localStorage.getItem('isLoggedIn') === 'true';
     setIsLoggedIn(loggedIn);
     
-    if (!loggedIn) {
-      navigate('/auth/login');
-      return;
-    }
+    // if (!loggedIn) {
+    //   navigate('/auth/login');
+    //   return;
+    // }
 
     // Categories for random assignment (defined inside useEffect to avoid dependency issues)
     const categories = ['shopping', 'coffee', 'books', 'food', 'groceries', 'gas', 'clothing', 'electronics', 'entertainment'];
@@ -81,9 +81,9 @@ const Game = () => {
     navigate('/game/city');
   };
 
-  if (!isLoggedIn) {
-    return <div>Redirecting to login...</div>;
-  }
+  // if (!isLoggedIn) {
+  //   return <div>Redirecting to login...</div>;
+  // }
 
   return (
     <div className="min-h-screen bg-gray-50">

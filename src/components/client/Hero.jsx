@@ -1,7 +1,7 @@
 import React from "react";
 import Button from "../common/Button";
-import { FaShieldAlt, FaClock, FaQrcode, FaMobileAlt, FaRobot, FaChartLine, FaGift, FaLock, FaCreditCard } from 'react-icons/fa';
-import { BiSolidLock } from 'react-icons/bi';
+import { FaShieldAlt, FaClock, FaMobileAlt, FaRobot, FaChartLine, FaGift, FaLock, FaCreditCard } from 'react-icons/fa';
+import { BiSolidLock, BiSolidShield } from 'react-icons/bi';
 import Copy from "../common/Copy";
 import { Link } from "react-router-dom";
 const Hero = () => {
@@ -12,9 +12,9 @@ const Hero = () => {
       description: "6-digit temporary codes with time-limited validity for maximum security"
     },
     {
-      icon: <FaQrcode className="text-3xl text-[#007d56]" />,
-      title: "QR Integration",
-      description: "Scan and pay instantly at restaurants, stores, and online shops"
+      icon: <BiSolidShield className="text-3xl text-[#007d56]" />,
+      title: "Enhanced Security",
+      description: "Time-limited 6-digit codes provide secure and reliable payment verification"
     },
     {
       icon: <FaClock className="text-3xl text-[#007d56]" />,
@@ -33,7 +33,7 @@ const Hero = () => {
     <section className="w-full">
       {/* Hero Section */}
       <section className='relative w-full overflow-hidden'>
-        <div className='w-full min-h-[80vh] max-w-[1440px] mx-auto px-4 py-16 md:py-24 flex flex-col md:flex-row items-center justify-between'>
+        <div className='w-full min-h-[80vh] max-w-[1440px] mx-auto lg:px-16 md:px-8 px-4 py-16 md:py-24 flex flex-col md:flex-row items-center justify-between'>
           <div className='w-full md:w-1/2 text-left z-10 mb-10 md:mb-0'>
             <Copy delay={0}>
               <div className="inline-block px-4 py-1 bg-[#e6f2ee] rounded-full mb-4">
@@ -92,7 +92,7 @@ const Hero = () => {
                   </div>
                   <div className="flex justify-between">
                     <button className="bg-gray-100 hover:bg-gray-200 p-3 rounded-xl">
-                      <FaQrcode className="text-gray-700 text-xl" />
+                      <FaLock className="text-gray-700 text-xl" />
                     </button>
                     <button className="bg-gray-100 hover:bg-gray-200 p-3 rounded-xl">
                       <FaShieldAlt className="text-gray-700 text-xl" />
@@ -119,7 +119,7 @@ const Hero = () => {
             <h2 className="text-3xl md:text-4xl font-bold mb-4 text-gray-900 ">We Provide The Best Experience</h2>
             </Copy>
             <Copy delay={0.2}>
-            <p className="text-lg text-gray-600 max-w-2xl mx-auto">Our secure payment system combines speed with top-tier security features to give you peace of mind.</p>
+            <p className="text-lg text-gray-600 max-w-2xl mx-auto">Our secure payment system combines speed with top-tier security features to give you peace of mind</p>
             </Copy>
           </div>
           
@@ -154,23 +154,17 @@ const Hero = () => {
           </Copy>
           <Copy delay={0.2}>
           <p className="text-xl mb-8 max-w-3xl mx-auto">
-            Join thousands of satisfied users who have made the switch to our secure payment system.
-            No more complicated authentication processes or security concerns.
+            Join thousands of satisfied users who have made the switch to our secure payment system
+            No more complicated authentication processes or security concerns
           </p>
           </Copy>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <a 
-              href="/auth/login" 
+            <Link to="/auth/login" 
               className="bg-[#c50b30] hover:bg-[#a80929] text-white font-bold py-3 px-8 rounded-full transition-all duration-300"
             >
               Get Started Now
-            </a>
-            <a 
-              href="#contact" 
-              className="bg-transparent hover:bg-[#006a48] text-white border border-white font-bold py-3 px-8 rounded-full transition-all duration-300"
-            >
-              Contact Support
-            </a>
+            </Link>
+         
           </div>
         </div>
       </div>
