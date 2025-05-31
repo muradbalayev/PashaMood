@@ -227,9 +227,10 @@ const Partners = () => {
       setOrderSuccess(true);
       setCart([]);
       
-      // Set payment success flag in localStorage
+      // Set payment success flag and amounts in localStorage
       localStorage.setItem('paymentSuccess', 'true');
       localStorage.setItem('paymentAmount', savedAmount); // Keep amount for success message
+      localStorage.setItem('orderAmount', cartTotal.toString()); // Store order amount for refund calculation
       
       // Clear payment code data
       localStorage.removeItem('tempCode');
@@ -265,6 +266,18 @@ const Partners = () => {
       setTimeout(() => {
         setIsProcessing(false);
         setOrderSuccess(true);
+        
+        // Calculate cart total
+        const cartTotal = cart.reduce((total, item) => total + (item.price * item.quantity), 0);
+        
+        // Set payment success flag and amounts in localStorage
+        const savedAmount = localStorage.getItem('paymentAmount');
+        localStorage.setItem('paymentSuccess', 'true');
+        localStorage.setItem('orderAmount', cartTotal.toString()); // Store order amount for refund calculation
+        
+        // Clear payment code data
+        localStorage.removeItem('tempCode');
+        localStorage.removeItem('codeExpiry');
         
         // Clear cart after successful payment
         setCart([]);

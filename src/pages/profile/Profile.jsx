@@ -7,7 +7,7 @@ import { QRCodeSVG as QRCode } from 'qrcode.react';
 import Transition from '../../components/Transition';
 import MistralChatbot from '../../components/chatbot/MistralChatbot';
 import { FaMoneyBill } from 'react-icons/fa6';
-import { Toaster } from 'react-hot-toast';
+import toast, { Toaster } from 'react-hot-toast';
 
 const Profile = () => {
   const navigate = useNavigate();
@@ -29,6 +29,7 @@ const Profile = () => {
     const savedTempCode = localStorage.getItem('tempCode');
     const savedCodeExpiry = localStorage.getItem('codeExpiry');
     const paymentSuccess = localStorage.getItem('paymentSuccess');
+    const orderAmount = localStorage.getItem('orderAmount');
     
     // Check if payment was successful
     if (paymentSuccess === 'true' && savedPaymentAmount) {
@@ -36,8 +37,23 @@ const Profile = () => {
       setSuccessAmount(savedPaymentAmount);
       setShowSuccessModal(true);
       
+      // Show success toast
+      toast.success('Payment completed successfully!', {
+        duration: 4000,
+        position: 'top-center',
+        style: {
+          background: '#d4edda',
+          color: '#155724',
+          border: '1px solid #c3e6cb',
+          borderRadius: '8px',
+          padding: '16px'
+        },
+        icon: '✅'
+      });
+      
       // Clear payment success flag
       localStorage.removeItem('paymentSuccess');
+      localStorage.removeItem('orderAmount');
       
       // Clear any existing code
       if (intervalRef.current) {
@@ -563,8 +579,18 @@ const Profile = () => {
                 </svg>
               </div>
               <h3 className="text-xl font-bold text-gray-900 mb-2">Payment Successful!</h3>
+              <p className="text-gray-600 mb-4">
+                Your payment has been successfully processed.
+              </p>
+              {localStorage.getItem('orderAmount') && parseFloat(successAmount) > parseFloat(localStorage.getItem('orderAmount')) && (
+                <div className="bg-blue-50 text-blue-700 p-3 rounded-lg mb-6">
+                  <p>
+                    <span className="font-semibold">{(parseFloat(successAmount) - parseFloat(localStorage.getItem('orderAmount'))).toFixed(2)}{userData.currency}</span> has been refunded to your account.
+                  </p>
+                </div>
+              )}
               <p className="text-gray-600 mb-6">
-                Your payment of <span className="font-semibold">{parseFloat(successAmount).toFixed(2)}{userData.currency}</span> has been successfully processed.
+                Transaction amount: <span className="font-semibold">{parseFloat(localStorage.getItem('orderAmount') || successAmount).toFixed(2)}{userData.currency}</span>
               </p>
               <div className="border-t border-gray-200 pt-4">
                 <button
