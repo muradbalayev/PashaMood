@@ -1,8 +1,9 @@
-import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { FaShoppingCart, FaStore, FaCreditCard, FaUserCircle, FaCopy, FaCheck } from 'react-icons/fa';
+import React, { useState, useEffect, useRef } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
+import { FaShoppingCart, FaStore, FaCreditCard, FaUserCircle, FaCopy, FaCheck, FaTimes, FaInfoCircle, FaLock } from 'react-icons/fa';
 import Transition from '../../components/Transition';
 import toast, { Toaster } from 'react-hot-toast';
+import { FaArrowLeft, FaMinus, FaPlus, FaTrash } from 'react-icons/fa6';
 
 const Partners = () => {
   const navigate = useNavigate();
@@ -15,6 +16,9 @@ const Partners = () => {
   const [isProcessing, setIsProcessing] = useState(false);
   const [orderSuccess, setOrderSuccess] = useState(false);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [verificationError, setVerificationError] = useState('');
+  const [isVerifying, setIsVerifying] = useState(false);
+  const codeInputRefs = useRef(Array(6).fill(null));
 
   useEffect(() => {
     // Check if user is logged in
@@ -97,7 +101,7 @@ const Partners = () => {
     // Show toast notification
     toast.success(`${product.name} səbətə əlavə edildi!`, {
       duration: 3000,
-      position: 'top-right',
+      position: 'top-center',
       style: {
         background: '#d4edda',
         color: '#155724',
@@ -138,6 +142,113 @@ const Partners = () => {
 
   const handlePaymentMethodSelect = (method) => {
     setPaymentMethod(method);
+    setVerificationError('');
+  };
+  
+  // Handle code input change
+  const handleCodeChange = (index, value) => {
+    if (value.length > 1) {
+      // If pasting multiple digits
+      const pastedValue = value.replace(/[^0-9]/g, '');
+      const newOtp = otpCode.split('');
+      
+      // Fill in the current and subsequent inputs
+      for (let i = 0; i < pastedValue.length && index + i < 6; i++) {
+        newOtp[index + i] = pastedValue[i];
+      }
+      
+      setOtpCode(newOtp.join(''));
+      
+      // Focus on the appropriate input after pasting
+      const nextIndex = Math.min(index + pastedValue.length, 5);
+      if (nextIndex < 6) {
+        codeInputRefs.current[nextIndex].focus();
+      }
+    } else {
+      // Single digit input
+      const newOtp = otpCode.split('');
+      newOtp[index] = value;
+      setOtpCode(newOtp.join(''));
+      
+      // Auto-focus next input
+      if (value && index < 5) {
+        codeInputRefs.current[index + 1].focus();
+      }
+    }
+  };
+  
+  // Handle backspace key
+  const handleKeyDown = (e, index) => {
+    if (e.key === 'Backspace' && !otpCode[index] && index > 0) {
+      // Focus previous input when backspace is pressed on an empty input
+      codeInputRefs.current[index - 1].focus();
+    }
+  };
+  
+  // Verify payment
+  const verifyPayment = () => {
+    setIsVerifying(true);
+    setVerificationError('');
+    
+    // Calculate total cart amount
+    const cartTotal = cart.reduce((total, item) => total + (item.price * item.quantity), 0);
+    
+    // Simulate API call with timeout
+    setTimeout(() => {
+      // Get saved code and amount from localStorage
+      const savedCode = localStorage.getItem('tempCode');
+      const savedAmount = localStorage.getItem('paymentAmount');
+      const savedExpiry = localStorage.getItem('codeExpiry');
+      const now = new Date().getTime();
+      
+      // Check if code exists and is not expired
+      if (!savedCode || !savedExpiry || parseInt(savedExpiry) < now) {
+        setVerificationError('Invalid or expired code. Please generate a new code.');
+        setIsVerifying(false);
+        return;
+      }
+      
+      // Check if code matches
+      if (otpCode !== savedCode) {
+        setVerificationError('Invalid verification code. Please try again.');
+        setIsVerifying(false);
+        return;
+      }
+      
+      // Check if amount is sufficient
+      if (savedAmount && parseFloat(savedAmount) < cartTotal) {
+        setVerificationError(`Payment amount (${parseFloat(savedAmount).toFixed(2)}₼) is less than cart total (${cartTotal.toFixed(2)}₼). Please generate a code with sufficient amount.`);
+        setIsVerifying(false);
+        return;
+      }
+      
+      // If all checks pass, process payment
+      setIsVerifying(false);
+      setOrderSuccess(true);
+      setCart([]);
+      
+      // Set payment success flag in localStorage
+      localStorage.setItem('paymentSuccess', 'true');
+      localStorage.setItem('paymentAmount', savedAmount); // Keep amount for success message
+      
+      // Clear payment code data
+      localStorage.removeItem('tempCode');
+      localStorage.removeItem('codeExpiry');
+      
+      // Show success toast
+      toast.success('Payment successful!', {
+        duration: 3000,
+        position: 'top-center',
+        style: {
+          background: '#d4edda',
+          color: '#155724',
+          border: '1px solid #c3e6cb',
+          borderRadius: '8px',
+          padding: '16px'
+        },
+        icon: '✅'
+      });
+    }, 1500);
   };
 
   const verifyOTP = () => {
@@ -172,6 +283,7 @@ const Partners = () => {
     setPaymentMethod('');
     setOtpCode('');
     setOrderSuccess(false);
+    setVerificationError('');
   };
 
   // if (!isLoggedIn) {
@@ -182,12 +294,14 @@ const Partners = () => {
     <div className="min-h-screen bg-gray-100">
       <Toaster />
       {/* Header */}
-      <header className="bg-[#007d56] text-white shadow-lg">
-        <div className="container mx-auto px-16 py-4 flex justify-between items-center">
+      <header className="bg-[#007d56] text-white shadow-lg sticky top-0 z-50">
+        <div className="mx-auto px-4 md:px-8 lg:px-16 py-4 flex justify-between items-center">
           <div className="flex items-center">
-            <div className="bg-white rounded-full p-3 mr-2 w-44">
+            <Link to="/">
+            <div className="bg-white rounded-full p-2 mr-2 w-36 md:w-44">
               <img src="/logo.png" alt="PashaMood" className="h-full w-full object-cover" />
             </div>
+            </Link>
           </div>
           <div className="flex items-center space-x-4">
             <button 
@@ -199,12 +313,12 @@ const Partners = () => {
             </button>
             <button 
               onClick={() => setShowCart(true)}
-              className="relative bg-[#005a3e] hover:bg-[#004530] px-4 py-2 rounded-lg text-sm transition-colors duration-200 flex items-center"
+              className="relative bg-[#005a3e] hover:bg-[#004530] px-4 py-2 rounded-lg text-sm transition-colors duration-200 flex items-center group"
             >
-              <FaShoppingCart className="mr-2" />
+              <FaShoppingCart className="mr-2 group-hover:scale-110 transition-transform" />
               Cart
               {cart.length > 0 && (
-                <span className="absolute -top-2 -right-2 bg-[#c50b30] text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
+                <span className="absolute -top-2 -right-2 bg-[#c50b30] text-white text-xs rounded-full h-5 w-5 flex items-center justify-center shadow-md transform transition-transform group-hover:scale-110">
                   {cart.length}
                 </span>
               )}
@@ -212,6 +326,35 @@ const Partners = () => {
           </div>
         </div>
       </header>
+
+      {/* Shop Categories */}
+      <div className="bg-white py-6 shadow-sm border-b border-gray-200">
+        <div className="mx-auto px-4 md:px-8 lg:px-16 overflow-x-auto overflow-y-hidden">
+          <div className="flex gap-x-6 min-w-max">
+            {shops.map(shop => (
+              <div 
+                key={shop.id} 
+                onClick={() => setActiveShop(shop)}
+                className={`flex flex-col items-center py-2 gap-y-2 cursor-pointer transition-all duration-200 ${activeShop?.id === shop.id ? 'transform scale-105' : 'opacity-70 hover:opacity-100'}`}
+              >
+                <div className={`w-16 h-16 rounded-full overflow-hidden border-2 ${activeShop?.id === shop.id ? 'border-[#007d56] shadow-md' : 'border-gray-200 hover:border-gray-300'}`}>
+                  <img 
+                    src={shop.logo} 
+                    alt={shop.name} 
+                    className="w-full h-full object-contain"
+                    onError={(e) => {
+                      e.target.onerror = null;
+                      e.target.src = 'https://via.placeholder.com/100?text=Logo';
+                    }}
+                  />
+                </div>
+                <span className={`whitespace-nowrap text-sm font-medium ${activeShop?.id === shop.id ? 'text-[#007d56]' : 'text-gray-600'}`}>{shop.name}</span>
+                {activeShop?.id === shop.id && <div className="h-1 w-10 bg-[#007d56] rounded-full"></div>}
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
 
       {/* Main Content */}
       <div className="container mx-auto lg:px-16 px-8 py-8">
@@ -237,31 +380,38 @@ const Partners = () => {
               </button>
             </div>
             
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8 mt-8">
               {activeShop.products.map(product => (
-                <div key={product.id} className="bg-white rounded-xl shadow-md overflow-hidden hover:shadow-lg transition-shadow">
-                  <div className="h-48 overflow-hidden">
+                <div key={product.id} className="group bg-white rounded-2xl shadow-sm overflow-hidden hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1">
+                  <div className="relative h-56 overflow-hidden">
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 z-10"></div>
                     <img 
                       src={product.image} 
                       alt={product.name} 
-                      className="w-full h-full object-cover transition-transform hover:scale-105 duration-300"
+                      className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
                       onError={(e) => {
                         e.target.onerror = null;
                         e.target.src = 'https://via.placeholder.com/300x200?text=Product+Image';
                       }}
                     />
-                  </div>
-                  <div className="p-4">
-                    <h3 className="font-semibold text-lg mb-2">{product.name}</h3>
-                    <div className="flex justify-between items-center">
-                      <p className="text-[#007d56] font-bold">₼{product.price.toFixed(2)}</p>
+                    <div className="absolute bottom-0 left-0 right-0 p-4 transform translate-y-full group-hover:translate-y-0 transition-transform duration-300 z-20">
                       <button 
                         onClick={() => addToCart(product)}
-                        className="bg-[#007d56] hover:bg-[#005a3e] text-white px-3 py-1 rounded-lg cursor-pointer transition-colors"
+                        className="w-full cursor-pointer bg-white/90 hover:bg-white text-[#007d56] font-medium py-2 rounded-lg flex items-center justify-center gap-2 transition-colors backdrop-blur-sm"
                       >
+                        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
+                        </svg>
                         Add to Cart
                       </button>
                     </div>
+                  </div>
+                  <div className="p-5">
+                    <div className="flex justify-between items-start mb-2">
+                      <h3 className="font-semibold text-lg text-gray-800 group-hover:text-[#007d56] transition-colors line-clamp-2">{product.name}</h3>
+                      <span className="bg-[#e6f2ee] text-[#007d56] font-bold px-3 py-1 rounded-full text-sm ml-2 whitespace-nowrap">₼{product.price.toFixed(2)}</span>
+                    </div>
+                    <p className="text-gray-500 text-sm line-clamp-2 mt-2">{product.description || `Premium quality ${product.name.toLowerCase()} available now with fast delivery.`}</p>
                   </div>
                 </div>
               ))}
@@ -310,26 +460,40 @@ const Partners = () => {
       {/* Shopping Cart Sidebar */}
       {showCart && (
         <div className="fixed inset-0 z-50 overflow-hidden">
-          <div className="absolute inset-0 bg-black bg-opacity-50" onClick={() => setShowCart(false)}></div>
-          <div className="absolute right-0 top-0 bottom-0 w-full max-w-md bg-white shadow-xl flex flex-col">
-            <div className="p-4 bg-[#007d56] text-white flex justify-between items-center">
-              <h2 className="text-xl font-bold">Your Cart</h2>
-              <button onClick={() => setShowCart(false)} className="text-white hover:text-gray-200">
-                &times;
+          <div className="absolute inset-0 bg-opacity-50 backdrop-blur-sm transition-opacity duration-300" onClick={() => setShowCart(false)}></div>
+          <div className="absolute right-0 top-0 bottom-0 w-full max-w-md bg-white shadow-2xl flex flex-col transform transition-transform duration-300">
+            <div className="p-6 bg-gradient-to-r from-[#007d56] to-[#005a3e] text-white flex justify-between items-center">
+              <h2 className="text-xl font-bold flex items-center">
+                <FaShoppingCart className="mr-3" />
+                Your Cart
+              </h2>
+              <button 
+                onClick={() => setShowCart(false)} 
+                className="text-white hover:text-gray-200 bg-white/20 rounded-full p-2 transition-all hover:bg-white/30"
+              >
+                <FaTimes size={16} />
               </button>
             </div>
             
-            <div className="flex-1 overflow-y-auto p-4">
+            <div className="flex-1 overflow-y-auto">
               {cart.length === 0 ? (
-                <div className="text-center py-12">
-                  <FaShoppingCart className="mx-auto text-gray-300 mb-4" size={48} />
-                  <p className="text-gray-500">Your cart is empty</p>
+                <div className="text-center py-16">
+                  <div className="bg-gray-100 rounded-full w-20 h-20 flex items-center justify-center mx-auto mb-4">
+                    <FaShoppingCart className="text-gray-400 text-3xl" />
+                  </div>
+                  <p className="text-gray-500 text-lg mb-4">Your cart is empty</p>
+                  <button 
+                    onClick={() => setShowCart(false)}
+                    className="px-6 py-2 bg-[#007d56] text-white rounded-lg hover:bg-[#005a3e] transition-all"
+                  >
+                    Continue Shopping
+                  </button>
                 </div>
               ) : (
-                <div className="space-y-4">
+                <div className="p-4 space-y-4">
                   {cart.map(item => (
-                    <div key={item.id} className="flex border-b border-gray-100 pb-4">
-                      <div className="w-20 h-20 rounded-md overflow-hidden mr-4">
+                    <div key={item.id} className="flex border-b border-gray-100 pb-4 hover:bg-gray-50 p-2 rounded-lg transition-colors">
+                      <div className="relative w-20 h-20 overflow-hidden rounded-xl mr-4 border border-gray-200">
                         <img 
                           src={item.image} 
                           alt={item.name} 
@@ -341,29 +505,30 @@ const Partners = () => {
                         />
                       </div>
                       <div className="flex-1">
-                        <h4 className="font-medium">{item.name}</h4>
+                        <h4 className="font-medium text-gray-800">{item.name}</h4>
                         <p className="text-[#007d56] font-bold">₼{item.price.toFixed(2)}</p>
                         <div className="flex items-center mt-2">
-                          <button 
-                            onClick={() => updateQuantity(item.id, item.quantity - 1)}
-                            className="bg-gray-200 hover:bg-gray-300 rounded-l-md w-8 h-8 flex items-center justify-center"
-                          >
-                            -
-                          </button>
-                          <span className="bg-gray-100 w-10 h-8 flex items-center justify-center">
-                            {item.quantity}
-                          </span>
-                          <button 
-                            onClick={() => updateQuantity(item.id, item.quantity + 1)}
-                            className="bg-gray-200 hover:bg-gray-300 rounded-r-md w-8 h-8 flex items-center justify-center"
-                          >
-                            +
-                          </button>
+                          <div className="flex items-center bg-gray-100 rounded-lg">
+                            <button 
+                              onClick={() => updateQuantity(item.id, item.quantity - 1)}
+                              className="text-gray-500 hover:text-gray-700 disabled:opacity-50 h-8 w-8 flex items-center justify-center rounded-l-lg hover:bg-gray-200 transition-colors"
+                              disabled={item.quantity <= 1}
+                            >
+                              <FaMinus size={12} />
+                            </button>
+                            <span className="mx-3 font-medium">{item.quantity}</span>
+                            <button 
+                              onClick={() => updateQuantity(item.id, item.quantity + 1)}
+                              className="text-gray-500 hover:text-gray-700 h-8 w-8 flex items-center justify-center rounded-r-lg hover:bg-gray-200 transition-colors"
+                            >
+                              <FaPlus size={12} />
+                            </button>
+                          </div>
                           <button 
                             onClick={() => removeFromCart(item.id)}
-                            className="ml-auto text-red-500 hover:text-red-700"
+                            className="ml-auto text-gray-400 hover:text-red-500 h-8 w-8 flex items-center justify-center rounded-full hover:bg-gray-100 transition-all"
                           >
-                            Remove
+                            <FaTrash size={14} />
                           </button>
                         </div>
                       </div>
@@ -373,20 +538,30 @@ const Partners = () => {
               )}
             </div>
             
-            <div className="p-4 border-t border-gray-200">
+            <div className="p-6 border-t border-gray-200 bg-gray-50">
+              <div className="flex justify-between mb-2">
+                <span className="text-gray-600">Subtotal:</span>
+                <span className="font-bold">₼{calculateTotal().toFixed(2)}</span>
+              </div>
               <div className="flex justify-between mb-4">
-                <span className="font-medium">Total:</span>
-                <span className="font-bold text-[#007d56]">₼{calculateTotal().toFixed(2)}</span>
+                <span className="text-gray-600">Delivery:</span>
+                <span className="text-[#007d56] font-medium">Free</span>
+              </div>
+              <div className="h-px bg-gray-200 mb-4"></div>
+              <div className="flex justify-between mb-6">
+                <span className="font-semibold">Total:</span>
+                <span className="font-bold text-lg">₼{calculateTotal().toFixed(2)}</span>
               </div>
               <button 
                 onClick={handleCheckout}
                 disabled={cart.length === 0}
-                className={`w-full py-3 rounded-lg font-medium ${
+                className={`w-full py-3 rounded-xl font-medium flex items-center justify-center text-lg ${
                   cart.length === 0 
                     ? 'bg-gray-300 text-gray-500 cursor-not-allowed' 
                     : 'bg-[#007d56] hover:bg-[#005a3e] text-white'
                 }`}
               >
+                <FaCreditCard className="mr-2" />
                 Checkout
               </button>
             </div>
@@ -397,113 +572,171 @@ const Partners = () => {
       {/* Payment Modal */}
       {showPaymentModal && (
         <div className="fixed inset-0 z-50 overflow-auto flex items-center justify-center">
-          <div className="absolute inset-0 bg-black bg-opacity-50" onClick={closePaymentModal}></div>
-          <div className="relative bg-white rounded-xl shadow-xl max-w-md w-full mx-4 max-h-[90vh] overflow-auto">
+          <div className="absolute inset-0  bg-opacity-60 backdrop-blur-sm" onClick={closePaymentModal}></div>
+          <div className="relative bg-white rounded-2xl shadow-2xl max-w-md w-full mx-4 max-h-[90vh] overflow-auto transform transition-all duration-300">
             {orderSuccess ? (
-              <div className="p-6 text-center">
-                <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                  <svg className="w-8 h-8 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+              <div className="p-8 text-center">
+                <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6 shadow-md">
+                  <svg className="w-10 h-10 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"></path>
                   </svg>
                 </div>
-                <h3 className="text-xl font-bold text-gray-900 mb-2">Payment Successful!</h3>
-                <p className="text-gray-600 mb-6">Your order has been placed successfully.</p>
-                <p className="text-sm text-gray-500 mb-6">
-                  PashaMood code verification was successful. Thank you for your purchase!
-                </p>
+                <h3 className="text-2xl font-bold text-gray-900 mb-3">Payment Successful!</h3>
+                <p className="text-gray-600 mb-6 text-lg">Your order has been placed successfully.</p>
+                <div className="bg-gray-50 rounded-xl p-4 mb-6">
+                  <p className="text-gray-600">
+                    PashaMood code verification was successful. Thank you for your purchase!
+                  </p>
+                </div>
                 <button
                   onClick={closePaymentModal}
-                  className="bg-[#007d56] hover:bg-[#005a3e] text-white font-medium py-2 px-6 rounded-lg transition-colors"
+                  className="bg-[#007d56] hover:bg-[#005a3e] text-white px-8 py-3 rounded-xl transition-colors text-lg font-medium shadow-md hover:shadow-lg transform hover:-translate-y-1 transition-all duration-200"
                 >
                   Continue Shopping
                 </button>
               </div>
             ) : (
-              <>
-                <div className="p-4 bg-[#007d56] text-white rounded-t-xl">
-                  <h2 className="text-xl font-bold">Complete Your Payment</h2>
-                  <p className="text-sm opacity-80">Total: ₼{calculateTotal().toFixed(2)}</p>
+              <div>
+                <div className="p-6 bg-gradient-to-r from-[#007d56] to-[#005a3e] text-white rounded-t-2xl">
+                  <h2 className="text-xl font-bold flex items-center">
+                    <FaCreditCard className="mr-3" />
+                    Complete Your Purchase
+                  </h2>
                 </div>
-                
-                <div className="p-6">
+                <div className="p-8">
                   {!paymentMethod ? (
-                    <div>
-                      <h3 className="font-medium mb-4">Select Payment Method</h3>
+                    <div className="p-8">
+                      <h3 className="font-medium mb-4 text-lg">Select Payment Method</h3>
                       <div className="space-y-3">
                         <button 
                           onClick={() => handlePaymentMethodSelect('visa')}
-                          className="w-full p-3 border border-gray-200 rounded-lg flex items-center hover:bg-gray-50"
+                          className="w-full p-4 border border-gray-200 rounded-xl flex items-center hover:bg-gray-50 transition-colors group"
                         >
-                          <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/5/5e/Visa_Inc._logo.svg/2560px-Visa_Inc._logo.svg.png" alt="Visa" className="h-8 mr-3" />
-                          <span>Pay with Visa</span>
+                          <div className="bg-blue-50 rounded-lg p-2 mr-4 group-hover:bg-blue-100 transition-colors h-10">
+                            <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/5/5e/Visa_Inc._logo.svg/2560px-Visa_Inc._logo.svg.png" alt="Visa" className="h-full w-full object-contain" />
+                          </div>
+                          <span className="font-medium">Pay with Visa</span>
                         </button>
                         <button 
                           onClick={() => handlePaymentMethodSelect('mastercard')}
-                          className="w-full p-3 border border-gray-200 rounded-lg flex items-center hover:bg-gray-50"
+                          className="w-full p-4 border border-gray-200 rounded-xl flex items-center hover:bg-gray-50 transition-colors group"
                         >
-                          <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/2/2a/Mastercard-logo.svg/1280px-Mastercard-logo.svg.png" alt="Mastercard" className="h-8 mr-3" />
-                          <span>Pay with Mastercard</span>
+                          <div className="bg-red-50 rounded-lg p-2 mr-4 group-hover:bg-red-100 transition-colors h-10">
+                            <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/2/2a/Mastercard-logo.svg/1280px-Mastercard-logo.svg.png" alt="Mastercard" className="h-full w-full object-contain" />
+                          </div>
+                          <span className="font-medium">Pay with Mastercard</span>
                         </button>
                         <button 
                           onClick={() => handlePaymentMethodSelect('paypal')}
-                          className="w-full p-3 border border-gray-200 rounded-lg flex items-center hover:bg-gray-50"
+                          className="w-full p-4 border border-gray-200 rounded-xl flex items-center hover:bg-gray-50 transition-colors group"
                         >
-                          <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/b/b5/PayPal.svg/1280px-PayPal.svg.png" alt="PayPal" className="h-8 mr-3" />
-                          <span>Pay with PayPal</span>
+                          <div className="bg-blue-50 rounded-lg p-2 mr-4 group-hover:bg-blue-100 transition-colors h-10">
+                            <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/b/b5/PayPal.svg/1280px-PayPal.svg.png" alt="PayPal" className="h-full w-full object-contain" />
+                          </div>
+                          <span className="font-medium">Pay with PayPal</span>
                         </button>
                         <button 
                           onClick={() => handlePaymentMethodSelect('pashamood')}
-                          className="w-full p-3 border border-gray-200 rounded-lg flex items-center hover:bg-gray-50"
+                          className="w-full p-4 border-2 border-[#e6f2ee] rounded-xl flex items-center hover:bg-[#f5fbf9] transition-colors group bg-white shadow-sm"
                         >
-                          <div className="bg-[#007d56] text-white rounded-full h-8 w-8 flex items-center justify-center mr-3">
-                            <FaCreditCard />
+                          <div className="bg-blue-50 rounded-lg p-2 mr-4 group-hover:bg-blue-100 transition-colors h-10">
+                            <img src="./logo.png" alt="PayPal" className="h-full w-full object-contain" />
                           </div>
-                          <span>Pay with PashaMood</span>
+                          <span className="font-medium text-[#007d56]">Pay with PashaMood</span>
                         </button>
                       </div>
                     </div>
                   ) : paymentMethod === 'pashamood' ? (
-                    <div>
+                    <div className="">
                       <button 
                         onClick={() => setPaymentMethod('')}
-                        className="text-[#007d56] hover:text-[#005a3e] font-medium mb-4 flex items-center"
+                        className="text-[#007d56] hover:text-[#005a3e] font-medium mb-6 flex items-center px-4 py-2 rounded-lg hover:bg-[#f5fbf9] transition-all"
                       >
-                        ← Back to payment methods
+                        <FaArrowLeft className="mr-2" />
+                        Back to payment methods
                       </button>
                       
-                      <h3 className="font-medium mb-2">Enter PashaMood Code</h3>
-                      <p className="text-sm text-gray-500 mb-4">
-                        Enter the 6-digit code generated in your PashaMood app
-                      </p>
+                      <div className="bg-[#f5fbf9] p-4 rounded-xl mb-6">
+                        <h3 className="font-medium mb-2 flex items-center text-[#007d56]">
+                          <FaInfoCircle className="mr-2" />
+                          Enter PashaMood Code
+                        </h3>
+                        <p className="text-gray-600">
+                          Enter the 6-digit code generated in your PashaMood app to complete your purchase securely.
+                        </p>
+                      </div>
                       
                       {isProcessing ? (
-                        <div className="text-center py-6">
+                        <div className="text-center py-8">
                           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#007d56] mx-auto mb-4"></div>
                           <p className="text-gray-600">Verifying your payment...</p>
                         </div>
                       ) : (
                         <>
                           <div className="mb-6">
-                            <input
-                              type="text"
-                              maxLength="6"
-                              value={otpCode}
-                              onChange={(e) => setOtpCode(e.target.value.replace(/[^0-9]/g, ''))}
-                              placeholder="Enter 6-digit code"
-                              className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#007d56] focus:border-[#007d56] text-center text-2xl tracking-widest"
-                            />
+                            <div className="flex justify-center space-x-3">
+                              {Array(6).fill().map((_, index) => (
+                                <input
+                                  key={index}
+                                  type="text"
+                                  maxLength="6"
+                                  value={otpCode[index] || ''}
+                                  onChange={(e) => handleCodeChange(index, e.target.value)}
+                                  onKeyDown={(e) => handleKeyDown(e, index)}
+                                  ref={el => codeInputRefs.current[index] = el}
+                                  className="w-12 h-14 border-2 border-gray-300 rounded-lg text-center text-xl font-bold focus:border-[#007d56] focus:ring-2 focus:ring-[#e6f2ee] focus:outline-none transition-all shadow-sm"
+                                  onPaste={(e) => {
+                                    e.preventDefault();
+                                    const pasteData = e.clipboardData.getData('text').replace(/[^0-9]/g, '').slice(0, 6);
+                                    const newOtp = otpCode.split('');
+                                    
+                                    // Fill in the inputs starting from current position
+                                    for (let i = 0; i < pasteData.length && index + i < 6; i++) {
+                                      newOtp[index + i] = pasteData[i];
+                                    }
+                                    
+                                    setOtpCode(newOtp.join(''));
+                                    
+                                    // Focus on the last input or the next empty one
+                                    const nextIndex = Math.min(index + pasteData.length, 5);
+                                    if (nextIndex < 6) {
+                                      codeInputRefs.current[nextIndex].focus();
+                                    }
+                                  }}
+                                />
+                              ))}
+                            </div>
                           </div>
                           
+                          {verificationError && (
+                            <div className="bg-red-50 text-red-500 p-3 rounded-lg mt-4 mb-4 text-center">
+                              <p>{verificationError}</p>
+                            </div>
+                          )}
+                          
                           <button
-                            onClick={verifyOTP}
-                            disabled={otpCode.length !== 6}
-                            className={`w-full py-3 rounded-lg font-medium ${
-                              otpCode.length !== 6
+                            onClick={verifyPayment}
+                            disabled={otpCode.length !== 6 || isVerifying}
+                            className={`w-full py-3 rounded-xl font-medium flex items-center justify-center text-lg transition-all ${
+                              otpCode.length !== 6 || isVerifying
                                 ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
-                                : 'bg-[#007d56] hover:bg-[#005a3e] text-white'
+                                : 'bg-[#007d56] hover:bg-[#005a3e] text-white shadow-md hover:shadow-lg transform hover:-translate-y-1'
                             }`}
                           >
-                            Verify & Pay
+                            {isVerifying ? (
+                              <>
+                                <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                </svg>
+                                Verifying...
+                              </>
+                            ) : (
+                              <>
+                                <FaLock className="mr-2" />
+                                Verify & Pay
+                              </>
+                            )}
                           </button>
                         </>
                       )}
@@ -532,7 +765,7 @@ const Partners = () => {
                     </div>
                   )}
                 </div>
-              </>
+              </div>
             )}
           </div>
         </div>
