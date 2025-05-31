@@ -24,8 +24,8 @@ const Footer = () => {
             </div>
             <nav className="flex flex-col space-y-3">
               <Link to="/" className="text-2xl font-medium hover:text-primary-600 transition-colors">Home</Link>
-              <Link to="/about" className="text-2xl font-medium hover:text-primary-600 transition-colors">About</Link>
-              <Link to="/contact" className="text-2xl font-medium hover:text-primary-600 transition-colors">Contact Us</Link>
+              <Link to="/profile" className="text-2xl font-medium hover:text-primary-600 transition-colors">Profile</Link>
+              <Link to="/game" className="text-2xl font-medium hover:text-primary-600 transition-colors">Game</Link>
             </nav>
             <div className="mt-8 space-y-2">
               <div className="text-sm uppercase text-gray-500">PRIVACY POLICY</div>

@@ -3,6 +3,7 @@ import Button from "../common/Button";
 import { FaShieldAlt, FaClock, FaQrcode, FaMobileAlt, FaRobot, FaChartLine, FaGift, FaLock, FaCreditCard } from 'react-icons/fa';
 import { BiSolidLock } from 'react-icons/bi';
 import Copy from "../common/Copy";
+import { Link } from "react-router-dom";
 const Hero = () => {
   const features = [
     {
@@ -53,12 +54,9 @@ const Hero = () => {
               </p>
             </Copy>
               <div className='flex flex-col sm:flex-row justify-start gap-4'>
-                <a href='/auth/login' className='bg-[#c50b30] hover:bg-[#a80929] text-white font-bold py-3 px-8 rounded-full transition duration-300 transform hover:scale-105 inline-block text-center shadow-lg'>
+                <Link to='/auth/login' className='bg-[#c50b30] hover:bg-[#a80929] text-white font-bold py-3 px-8 rounded-full transition duration-300 transform hover:scale-105 inline-block text-center shadow-lg'>
                   Get Started
-                </a>
-                <a href='#features' className='bg-white hover:bg-[#e6f2ee] text-[#007d56] border border-[#007d56] font-bold py-3 px-8 rounded-full transition duration-300 transform hover:scale-105 inline-block text-center shadow-md'>
-                  Learn More
-                </a>
+                </Link>
               </div>
           </div>
           <div className='w-full md:w-1/2 flex justify-center items-center z-10'>
@@ -115,7 +113,7 @@ const Hero = () => {
 
       {/* Features Section */}
       <div id="features" className="py-20 bg-gray-50">
-        <div className="container mx-auto px-4">
+        <div className="mx-auto lg:px-16 px-4">
           <div className="text-center mb-16">
             <Copy delay={0}>
             <h2 className="text-3xl md:text-4xl font-bold mb-4 text-gray-900 ">We Provide The Best Experience</h2>
@@ -150,7 +148,7 @@ const Hero = () => {
 
       {/* CTA Section */}
       <div className="py-16 bg-[#007d56] text-white">
-        <div className="container mx-auto px-4 text-center">
+        <div className="mx-auto lg:px-16 px-4 text-center">
         <Copy delay={0}>
           <h2 className="text-3xl md:text-4xl font-bold mb-6">Ready to Experience Secure Payments?</h2>
           </Copy>
@@ -179,7 +177,7 @@ const Hero = () => {
       
       {/* Contact Section */}
       <div id="contact" className="py-20 bg-gray-50">
-        <div className="container mx-auto px-4">
+        <div className="mx-auto lg:px-16 px-4">
           <div className="text-center mb-16">
             <span className="text-[#007d56] font-medium mb-2 block">GET IN TOUCH</span>
             <h2 className="text-4xl font-bold mb-4">Contact Us</h2>

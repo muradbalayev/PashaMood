@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { FaCoins, FaShoppingBag, FaCoffee, FaBook, FaUtensils, FaShoppingCart, FaGasPump, FaTshirt, FaLaptop, FaGamepad, FaCity, FaMoneyBillWave, FaChartLine, FaBuilding, FaWallet } from 'react-icons/fa';
+import { FaCoins, FaShoppingBag, FaCoffee, FaBook, FaUtensils, FaShoppingCart, FaGasPump, FaTshirt, FaLaptop, FaGamepad, FaCity, FaMoneyBillWave, FaChartLine, FaBuilding, FaWallet, FaHome } from 'react-icons/fa';
 import { FiShoppingCart, FiCreditCard, FiTrendingUp, FiHome, FiDollarSign, FiAward } from 'react-icons/fi';
 import { BsCashCoin, BsBank, BsCreditCard2Front, BsGraphUp, BsBuilding, BsWallet2 } from 'react-icons/bs';
 import Transition from '../../components/Transition';
+import { FaHouse } from 'react-icons/fa6';
 
 const Game = () => {
   const navigate = useNavigate();
@@ -12,17 +13,30 @@ const Game = () => {
   const [transactions, setTransactions] = useState([]);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
 
-  // Transaction icons mapping
-  const transactionIcons = {
-    shopping: <FaShoppingBag size={24} />,
-    coffee: <FaCoffee size={24} />,
-    books: <FaBook size={24} />,
-    food: <FaUtensils size={24} />,
-    groceries: <FaShoppingCart size={24} />,
-    gas: <FaGasPump size={24} />,
-    clothing: <FaTshirt size={24} />,
-    electronics: <FaLaptop size={24} />,
-    entertainment: <FaGamepad size={24} />
+  // Get transaction icon based on category
+  const getTransactionIcon = (category) => {
+    switch(category) {
+      case 'shopping':
+        return <FaShoppingBag size={24} />;
+      case 'coffee':
+        return <FaCoffee size={24} />;
+      case 'books':
+        return <FaBook size={24} />;
+      case 'food':
+        return <FaUtensils size={24} />;
+      case 'groceries':
+        return <FaShoppingCart size={24} />;
+      case 'gas':
+        return <FaGasPump size={24} />;
+      case 'clothing':
+        return <FaTshirt size={24} />;
+      case 'electronics':
+        return <FaLaptop size={24} />;
+      case 'entertainment':
+        return <FaGamepad size={24} />;
+      default:
+        return <FaShoppingBag size={24} />;
+    }
   };
 
   // We'll define categories inside useEffect to avoid dependency issues
@@ -72,7 +86,7 @@ const Game = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 pt-28">
+    <div className="min-h-screen bg-gray-50">
       {/* Header */}
       <motion.header 
         className="bg-gradient-to-r from-[#007d56] to-[#005a3e] text-white shadow-lg"
@@ -81,17 +95,20 @@ const Game = () => {
         transition={{ duration: 0.5 }}
       >
         <div className="container mx-auto px-4 py-8">
-          <div className="flex flex-col items-center">
+          <div className="flex flex-col items-center ">
+            <Link to="/" className="absolute top-4 left-4">
+            <FaHouse className="mr-3 text-3xl" />
+            </Link>
             <motion.h1 
-              className="text-3xl md:text-4xl font-bold text-center flex items-center"
+              className="inter text-3xl md:text-4xl font-bold text-center flex items-center"
               initial={{ opacity: 0, y: -20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.5 }}
             >
-              <BsBuilding className="mr-3 text-4xl" /> Pul sənin şəhərini inkişaf etdirir!
+              <BsBuilding className="mr-3 text-4xl" /> MoodCoins sənin şəhərini inkişaf etdirir!
             </motion.h1>
             <motion.p 
-              className="mt-3 text-gray-100 text-center max-w-2xl text-lg"
+              className="inter mt-3 text-gray-100 text-center max-w-2xl text-lg inter"
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ duration: 0.5, delay: 0.2 }}
@@ -113,18 +130,18 @@ const Game = () => {
         >
           <div className="bg-gradient-to-r from-[#007d56] to-[#005a3e] p-8 text-white">
             <h2 className="text-xl font-semibold mb-3 flex items-center">
-              <BsWallet2 className="mr-2 text-xl" /> Qazandığınız Ümumi Pasha Coins
+              <BsWallet2 className="mr-2 text-xl inter" /> Qazandığınız Ümumi Pasha Coins
             </h2>
             <div className="flex items-center">
               <FaCoins className="text-yellow-300 mr-3 text-4xl animate-pulse" />
-              <span className="text-4xl font-bold">{totalCoins.toLocaleString()}</span>
+              <span className="text-4xl font-bold inter">{totalCoins.toLocaleString()}</span>
             </div>
           </div>
         </motion.div>
 
         {/* Recent Transactions Section */}
-        <div>
-          <h2 className="text-2xl font-bold mb-6 text-[#007d56] flex items-center">
+        <div className='px-8'>
+          <h2 className="inter text-2xl font-bold mb-6 text-[#007d56] flex items-center">
             <BsCreditCard2Front className="mr-2" /> Son Əməliyyatlar
           </h2>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -140,10 +157,10 @@ const Game = () => {
                 <div className="p-4">
                   <div className="flex items-center mb-3">
                     <div className="w-12 h-12 rounded-full bg-[#007d56] bg-opacity-10 flex items-center justify-center text-[#007d56] mr-3 shadow-sm">
-                      {transactionIcons[transaction.category]}
+                      {getTransactionIcon(transaction.category)}
                     </div>
                     <div>
-                      <h3 className="font-medium">{transaction.category.charAt(0).toUpperCase() + transaction.category.slice(1)}</h3>
+                      <h3 className="inter font-medium">{transaction.category.charAt(0).toUpperCase() + transaction.category.slice(1)}</h3>
                       <p className="text-sm text-gray-500 flex items-center">
                         <FiCreditCard className="mr-1 text-xs" /> {transaction.date}
                       </p>
@@ -152,10 +169,10 @@ const Game = () => {
                   
                   <div className="flex justify-between items-center mb-3">
                     <span className="text-lg font-bold flex items-center">
-                      <FiDollarSign className="mr-1 text-[#007d56]" /> ₼{transaction.amount.toFixed(2)}
+                     ₼{transaction.amount.toFixed(2)}
                     </span>
                     <div className="flex items-center text-green-600">
-                      <BsCashCoin className="mr-1" />
+                      <BsCashCoin className="mr-1 inter" />
                       <span className="text-sm font-medium">+{transaction.cashback.toFixed(2)} ₼ Cashback</span>
                     </div>
                   </div>
@@ -194,7 +211,7 @@ const Game = () => {
         >
           <button
             onClick={handleStartBuilding}
-            className="bg-gradient-to-r from-[#007d56] to-[#005a3e] hover:from-[#006245] hover:to-[#004a2e] text-white font-bold py-5 px-10 rounded-full text-xl shadow-xl transform transition hover:scale-105 flex items-center"
+            className="inter bg-gradient-to-r from-[#007d56] to-[#005a3e] hover:from-[#006245] hover:to-[#004a2e] text-white font-bold py-5 px-10 rounded-full text-xl shadow-xl transform transition hover:scale-105 flex items-center"
           >
             <BsBuilding className="mr-3 text-2xl" /> Şəhərimi Qur
           </button>
@@ -202,12 +219,12 @@ const Game = () => {
         
         {/* Gamification Info */}
         <motion.div 
-          className="mt-12 bg-white rounded-2xl shadow-lg p-8 border border-gray-100"
+          className="mt-12 inter bg-white rounded-2xl shadow-lg p-8 border border-gray-100"
           initial={{ opacity: 0, y: 30 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5, delay: 0.5 }}
         >
-          <h2 className="text-2xl font-bold mb-6 text-[#007d56] flex items-center">
+          <h2 className="inter text-2xl font-bold mb-6 text-[#007d56] flex items-center">
             <FiAward className="mr-2" /> Necə işləyir?
           </h2>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -215,22 +232,22 @@ const Game = () => {
               <div className="w-16 h-16 rounded-full bg-[#007d56] bg-opacity-10 flex items-center justify-center text-[#007d56] mb-3 shadow-md">
                 <FiShoppingCart size={24} />
               </div>
-              <h3 className="font-medium mb-2">Alış-veriş edin</h3>
-              <p className="text-gray-600 text-sm">Pasha Bank kartınızla gündəlik alış-verişlərinizi edin</p>
+              <h3 className="inter font-medium mb-2">Alış-veriş edin</h3>
+              <p className="inter text-gray-600 text-sm">Pasha Bank kartınızla gündəlik alış-verişlərinizi edin</p>
             </div>
             <div className="flex flex-col items-center text-center">
               <div className="w-16 h-16 rounded-full bg-[#007d56] bg-opacity-10 flex items-center justify-center text-[#007d56] mb-3 shadow-md">
                 <BsCashCoin size={24} />
               </div>
-              <h3 className="font-medium mb-2">Cashback qazanın</h3>
-              <p className="text-gray-600 text-sm">Hər alış-verişdən 5% cashback qazanın və Pasha Coins toplayın</p>
+              <h3 className="inter font-medium mb-2">Cashback qazanın</h3>
+              <p className="inter text-gray-600 text-sm">Hər alış-verişdən 5% cashback qazanın və Pasha Coins toplayın</p>
             </div>
             <div className="flex flex-col items-center text-center">
               <div className="w-16 h-16 rounded-full bg-[#007d56] bg-opacity-10 flex items-center justify-center text-[#007d56] mb-3 shadow-md">
                 <BsBuilding size={24} />
               </div>
-              <h3 className="font-medium mb-2">Şəhərinizi qurun</h3>
-              <p className="text-gray-600 text-sm">Qazandığınız Pasha Coins ilə virtual şəhərinizi inkişaf etdirin</p>
+              <h3 className="inter font-medium mb-2">Şəhərinizi qurun</h3>
+              <p className="inter text-gray-600 text-sm">Qazandığınız Pasha Coins ilə virtual şəhərinizi inkişaf etdirin</p>
             </div>
           </div>
         </motion.div>

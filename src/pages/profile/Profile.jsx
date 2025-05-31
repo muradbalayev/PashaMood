@@ -412,7 +412,7 @@ const Profile = () => {
                   transition={{ duration: 0.3 }}
                   className="p-6 bg-white rounded-lg"
                 >
-                  <h2 className="text-2xl font-bold mb-6 text-[#007d56]">QR Payment</h2>
+                  <h2 className="text-2xl font-bold mb-6 text-[#007d56]">Generate Payment Code</h2>
                   <p className="text-gray-600 mb-6">
                     Generate a temporary payment code that can be used for the next 2 minutes.
                   </p>
@@ -431,7 +431,7 @@ const Profile = () => {
                         </div>
                         
                         <div className="bg-white p-6 rounded-b-xl shadow-md">
-                          <div className="flex justify-center mb-6">
+                          {/* <div className="flex justify-center mb-6">
                             <div className="bg-white p-3 rounded-lg shadow-md">
                               <QRCode 
                                 value={`PashaMood:${tempCode}:${paymentAmount}`} 
@@ -442,7 +442,7 @@ const Profile = () => {
                                 includeMargin={false}
                               />
                             </div>
-                          </div>
+                          </div> */}
                           
                           <div className="mb-6">
                             <p className="text-center text-gray-500 mb-2 text-sm">Or use temporary code</p>
