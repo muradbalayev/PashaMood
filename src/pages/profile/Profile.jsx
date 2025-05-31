@@ -1,13 +1,14 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { FaQrcode, FaCreditCard, FaHistory, FaChartPie, FaRobot, FaCopy, FaCheck } from 'react-icons/fa';
-import { HiOutlineCurrencyDollar } from 'react-icons/hi';
-import { motion } from 'framer-motion';
 import { QRCodeSVG as QRCode } from 'qrcode.react';
+import { FaRobot, FaCreditCard, FaUserCircle, FaCopy, FaCheck, FaHistory } from 'react-icons/fa';
+import { FaChartPie, FaMoneyBill } from 'react-icons/fa6';
+import toast, { Toaster } from 'react-hot-toast';
+import { usePayment } from '../../context/usePayment';
 import Transition from '../../components/Transition';
 import MistralChatbot from '../../components/chatbot/MistralChatbot';
-import { FaMoneyBill } from 'react-icons/fa6';
-import toast, { Toaster } from 'react-hot-toast';
+import { motion } from 'framer-motion';
+import { HiOutlineCurrencyDollar } from 'react-icons/hi';
 
 const Profile = () => {
   const navigate = useNavigate();
@@ -19,53 +20,52 @@ const Profile = () => {
   const [paymentAmount, setPaymentAmount] = useState('');
   const [showQRCode, setShowQRCode] = useState(false);
   const [codeCopied, setCodeCopied] = useState(false);
-  const [showSuccessModal, setShowSuccessModal] = useState(false);
-  const [successAmount, setSuccessAmount] = useState('');
   const intervalRef = useRef(null);
   
-  // Load saved payment data from localStorage if available
+  // Use payment context for success modal and toast
+  const { showSuccessModal, paymentAmount: successAmount, orderAmount, closeSuccessModal: handleCloseSuccessModal } = usePayment();
+  
+  // Set up polling to check for payment success in real-time across tabs
   useEffect(() => {
-    const savedPaymentAmount = localStorage.getItem('paymentAmount');
-    const savedTempCode = localStorage.getItem('tempCode');
-    const savedCodeExpiry = localStorage.getItem('codeExpiry');
-    const paymentSuccess = localStorage.getItem('paymentSuccess');
-    const orderAmount = localStorage.getItem('orderAmount');
+    // Initial check
+    checkPaymentSuccess();
     
-    // Check if payment was successful
-    if (paymentSuccess === 'true' && savedPaymentAmount) {
-      // Show success modal
-      setSuccessAmount(savedPaymentAmount);
-      setShowSuccessModal(true);
-      
-      // Show success toast
-      toast.success('Payment completed successfully!', {
-        duration: 4000,
-        position: 'top-center',
-        style: {
-          background: '#d4edda',
-          color: '#155724',
-          border: '1px solid #c3e6cb',
-          borderRadius: '8px',
-          padding: '16px'
-        },
-        icon: '✅'
-      });
-      
-      // Clear payment success flag
-      localStorage.removeItem('paymentSuccess');
-      localStorage.removeItem('orderAmount');
-      
+    // Set up polling interval (check every 1 second)
+    const pollInterval = setInterval(checkPaymentSuccess, 1000);
+    
+    // Clean up
+    return () => clearInterval(pollInterval);
+  }, []);
+  
+  // Function to check payment success status
+  const checkPaymentSuccess = () => {
+    // We don't need to handle the success modal and toast here anymore
+    // as they're managed by the PaymentContext
+    // Just clear the code if payment was successful
+    const paymentSuccess = localStorage.getItem('paymentSuccess');
+    
+    if (paymentSuccess === 'true') {
       // Clear any existing code
       if (intervalRef.current) {
         clearInterval(intervalRef.current);
       }
       setTempCode('');
       setShowQRCode(false);
-    } else if (savedPaymentAmount) {
+    }
+  };
+  
+  // Load saved payment amount and check for existing codes
+  useEffect(() => {
+    const savedPaymentAmount = localStorage.getItem('paymentAmount');
+    const savedTempCode = localStorage.getItem('tempCode');
+    const savedCodeExpiry = localStorage.getItem('codeExpiry');
+    const paymentSuccess = localStorage.getItem('paymentSuccess');
+    
+    if (savedPaymentAmount) {
       setPaymentAmount(savedPaymentAmount);
     }
     
-    if (savedTempCode && savedCodeExpiry && !paymentSuccess) {
+    if (savedTempCode && savedCodeExpiry && paymentSuccess !== 'true') {
       const expiryTime = parseInt(savedCodeExpiry);
       const now = new Date().getTime();
       
@@ -192,7 +192,8 @@ const Profile = () => {
 
   // Close success modal
   const closeSuccessModal = () => {
-    setShowSuccessModal(false);
+    // Use the context's closeSuccessModal function
+    handleCloseSuccessModal();
     localStorage.removeItem('paymentAmount');
   };
   
@@ -570,7 +571,7 @@ const Profile = () => {
       
       {/* Payment Success Modal */}
       {showSuccessModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+        <div className="fixed inset-0 bg-opacity-60 backdrop-blur-sm flex items-center justify-center z-50">
           <div className="bg-white rounded-xl shadow-2xl p-6 max-w-md w-full mx-4 transform transition-all">
             <div className="text-center">
               <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
@@ -578,26 +579,26 @@ const Profile = () => {
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"></path>
                 </svg>
               </div>
-              <h3 className="text-xl font-bold text-gray-900 mb-2">Payment Successful!</h3>
+              <h3 className="text-xl font-bold text-gray-900 mb-2">Ödəniş Uğurla Tamamlandı!</h3>
               <p className="text-gray-600 mb-4">
-                Your payment has been successfully processed.
+                Ödənişiniz uğurla həyata keçirildi.
               </p>
-              {localStorage.getItem('orderAmount') && parseFloat(successAmount) > parseFloat(localStorage.getItem('orderAmount')) && (
+              {orderAmount && parseFloat(successAmount) > parseFloat(orderAmount) && (
                 <div className="bg-blue-50 text-blue-700 p-3 rounded-lg mb-6">
                   <p>
-                    <span className="font-semibold">{(parseFloat(successAmount) - parseFloat(localStorage.getItem('orderAmount'))).toFixed(2)}{userData.currency}</span> has been refunded to your account.
+                    <span className="font-semibold">{(parseFloat(successAmount) - parseFloat(orderAmount)).toFixed(2)}{userData.currency}</span> məbləğiniz hesabınıza geri qaytarıldı.
                   </p>
                 </div>
               )}
               <p className="text-gray-600 mb-6">
-                Transaction amount: <span className="font-semibold">{parseFloat(localStorage.getItem('orderAmount') || successAmount).toFixed(2)}{userData.currency}</span>
+                Ödəniş məbləği: <span className="font-semibold">{parseFloat(orderAmount || successAmount).toFixed(2)}{userData.currency}</span>
               </p>
               <div className="border-t border-gray-200 pt-4">
                 <button
                   onClick={closeSuccessModal}
                   className="w-full bg-[#007d56] hover:bg-[#005a3e] text-white font-medium py-3 px-6 rounded-lg transition duration-300 shadow-md hover:shadow-lg"
                 >
-                  Close
+                  Bağla
                 </button>
               </div>
             </div>

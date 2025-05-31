@@ -603,7 +603,7 @@ const Partners = () => {
                 </div>
                 <button
                   onClick={closePaymentModal}
-                  className="bg-[#007d56] hover:bg-[#005a3e] text-white px-8 py-3 rounded-xl transition-colors text-lg font-medium shadow-md hover:shadow-lg transform hover:-translate-y-1 transition-all duration-200"
+                  className="bg-[#007d56] hover:bg-[#005a3e] text-white px-8 py-3 rounded-xl text-lg font-medium shadow-md hover:shadow-lg transform hover:-translate-y-1 transition-all duration-200"
                 >
                   Continue Shopping
                 </button>
