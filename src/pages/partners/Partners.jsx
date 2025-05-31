@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { FaShoppingCart, FaStore, FaCreditCard, FaUserCircle, FaCopy, FaCheck } from 'react-icons/fa';
 import Transition from '../../components/Transition';
+import toast, { Toaster } from 'react-hot-toast';
 
 const Partners = () => {
   const navigate = useNavigate();
@@ -20,9 +21,9 @@ const Partners = () => {
     const loggedIn = localStorage.getItem('isLoggedIn') === 'true';
     setIsLoggedIn(loggedIn);
     
-    if (!loggedIn) {
-      navigate('/auth/login');
-    }
+    // if (!loggedIn) {
+    //   navigate('/auth/login');
+    // }
   }, [navigate]);
 
   // Dummy shops data
@@ -30,7 +31,7 @@ const Partners = () => {
     {
       id: 1,
       name: 'iTicket.az',
-      logo: 'https://iticket.az/images/logo.svg',
+      logo: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSMhhpud6M2UphIRlOY7FnPtNNbgwY5XSSQZg&s',
       category: 'Entertainment',
       products: [
         { id: 101, name: 'Concert Ticket - Mugham Night', price: 35, image: 'https://images.unsplash.com/photo-1501281668745-f7f57925c3b4?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80' },
@@ -42,7 +43,7 @@ const Partners = () => {
     {
       id: 2,
       name: 'Hesab.az',
-      logo: 'https://hesab.az/assets/images/logo.svg',
+      logo: 'https://fed.az/upload/news/2092841.jpg',
       category: 'Utilities',
       products: [
         { id: 201, name: 'Electricity Bill Payment', price: 45.50, image: 'https://images.unsplash.com/photo-1473341304170-971dccb5ac1e?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80' },
@@ -54,7 +55,7 @@ const Partners = () => {
     {
       id: 3,
       name: 'Kontakt Home',
-      logo: 'https://kontakt.az/wp-content/uploads/2019/10/logo.svg',
+      logo: 'https://abb-bank.az/storage/uploads/files/1732027339_proekt-51.png?v=1053',
       category: 'Electronics',
       products: [
         { id: 301, name: 'Smartphone - Latest Model', price: 899, image: 'https://images.unsplash.com/photo-1556656793-08538906a9f8?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80' },
@@ -66,7 +67,7 @@ const Partners = () => {
     {
       id: 4,
       name: 'Bravo Supermarket',
-      logo: 'https://bravo.az/images/logo.svg',
+      logo: 'https://upload.wikimedia.org/wikipedia/commons/d/d7/Bravo_Supermarketl%C9%99r_%C5%9E%C9%99b%C9%99k%C9%99si.jpg',
       category: 'Groceries',
       products: [
         { id: 401, name: 'Fresh Produce Basket', price: 45, image: 'https://images.unsplash.com/photo-1542838132-92c53300491e?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80' },
@@ -78,17 +79,38 @@ const Partners = () => {
   ];
 
   const addToCart = (product) => {
-    const existingItem = cart.find(item => item.id === product.id);
+    // Check if product is already in cart
+    const existingProduct = cart.find(item => item.id === product.id);
     
-    if (existingItem) {
+    if (existingProduct) {
+      // If product exists, increase quantity
       setCart(cart.map(item => 
         item.id === product.id 
           ? { ...item, quantity: item.quantity + 1 } 
           : item
       ));
     } else {
+      // Add new product to cart
       setCart([...cart, { ...product, quantity: 1 }]);
     }
+    
+    // Show toast notification
+    toast.success(`${product.name} səbətə əlavə edildi!`, {
+      duration: 3000,
+      position: 'top-right',
+      style: {
+        background: '#d4edda',
+        color: '#155724',
+        border: '1px solid #c3e6cb',
+        padding: '16px',
+        borderRadius: '8px',
+        fontFamily: 'Inter, sans-serif',
+      },
+      iconTheme: {
+        primary: '#007d56',
+        secondary: '#FFFFFF',
+      },
+    });
   };
 
   const removeFromCart = (productId) => {
@@ -152,15 +174,16 @@ const Partners = () => {
     setOrderSuccess(false);
   };
 
-  if (!isLoggedIn) {
-    return <div>Redirecting to login...</div>;
-  }
+  // if (!isLoggedIn) {
+  //   return <div>Redirecting to login...</div>;
+  // }
 
   return (
     <div className="min-h-screen bg-gray-100">
+      <Toaster />
       {/* Header */}
       <header className="bg-[#007d56] text-white shadow-lg">
-        <div className="container mx-auto px-4 py-4 flex justify-between items-center">
+        <div className="container mx-auto px-16 py-4 flex justify-between items-center">
           <div className="flex items-center">
             <div className="bg-white rounded-full p-3 mr-2 w-44">
               <img src="/logo.png" alt="PashaMood" className="h-full w-full object-cover" />
@@ -191,21 +214,20 @@ const Partners = () => {
       </header>
 
       {/* Main Content */}
-      <div className="container mx-auto px-4 py-8">
+      <div className="container mx-auto lg:px-16 px-8 py-8">
         {activeShop ? (
           <div>
             <div className="flex items-center justify-between mb-6">
-              <div className="flex items-center">
+              <div className="flex items-center h-16">
                 <img 
                   src={activeShop.logo} 
                   alt={activeShop.name} 
-                  className="h-10 mr-3"
+                  className="h-full w-full object-contain mr-3"
                   onError={(e) => {
                     e.target.onerror = null;
                     e.target.src = 'https://via.placeholder.com/150x50?text=' + activeShop.name;
                   }}
                 />
-                <h1 className="text-2xl font-bold text-[#007d56]">{activeShop.name}</h1>
               </div>
               <button 
                 onClick={() => setActiveShop(null)}
@@ -235,7 +257,7 @@ const Partners = () => {
                       <p className="text-[#007d56] font-bold">₼{product.price.toFixed(2)}</p>
                       <button 
                         onClick={() => addToCart(product)}
-                        className="bg-[#007d56] hover:bg-[#005a3e] text-white px-3 py-1 rounded-lg text-sm transition-colors"
+                        className="bg-[#007d56] hover:bg-[#005a3e] text-white px-3 py-1 rounded-lg cursor-pointer transition-colors"
                       >
                         Add to Cart
                       </button>
@@ -257,7 +279,7 @@ const Partners = () => {
                   className="bg-white rounded-xl shadow-md overflow-hidden hover:shadow-lg transition-shadow cursor-pointer"
                   onClick={() => setActiveShop(shop)}
                 >
-                  <div className="h-32 bg-gray-50 flex items-center justify-center p-4">
+                  <div className="h-36 flex items-center justify-center p-4">
                     <img 
                       src={shop.logo} 
                       alt={shop.name} 

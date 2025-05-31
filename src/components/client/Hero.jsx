@@ -88,7 +88,7 @@ const Hero = () => {
                         <div className="w-10 h-10 bg-white/20 rounded-lg flex items-center justify-center font-bold">9</div>
                       </div>
                     </div>
-                    <p className="text-xs mt-4 opacity-70 text-center">Valid for 5:00 minutes</p>
+                    <p className="text-xs mt-4 opacity-70 text-center">Valid for 2:00 minutes</p>
                   </div>
                   <div className="flex justify-between">
                     <button className="bg-gray-100 hover:bg-gray-200 p-3 rounded-xl">
