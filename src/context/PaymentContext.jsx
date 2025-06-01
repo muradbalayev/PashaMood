@@ -15,10 +15,24 @@ export const PaymentProvider = ({ children }) => {
 
   // Function to handle successful payment
   const handlePaymentSuccess = (amount, orderAmt) => {
+    // Ensure we're working with numbers for calculations
+    const paymentAmountNum = parseFloat(amount);
+    const orderAmountNum = parseFloat(orderAmt);
+    
+    // Store both original values
     setPaymentAmount(amount);
     setOrderAmount(orderAmt);
     setPaymentSuccess(true);
     setShowSuccessModal(true);
+    
+    // Calculate refund if payment amount exceeds order amount
+    const hasRefund = paymentAmountNum > orderAmountNum;
+    const refundAmount = hasRefund ? (paymentAmountNum - orderAmountNum).toFixed(2) : 0;
+    
+    // Store refund information in localStorage for access across components
+    if (hasRefund) {
+      localStorage.setItem('refundAmount', refundAmount);
+    }
     
     // Show success toast
     toast.success('Payment completed successfully!', {
@@ -43,7 +57,11 @@ export const PaymentProvider = ({ children }) => {
       const order = localStorage.getItem('orderAmount');
       
       if (success === 'true' && amount) {
-        handlePaymentSuccess(amount, order);
+        // Convert to numbers to ensure proper comparison
+        const paymentAmount = parseFloat(amount);
+        const orderAmount = parseFloat(order || amount); // Default to payment amount if order amount is not set
+        
+        handlePaymentSuccess(amount, orderAmount.toString());
         localStorage.removeItem('paymentSuccess');
       }
     };
@@ -74,6 +92,7 @@ export const PaymentProvider = ({ children }) => {
   const resetPayment = () => {
     setPaymentSuccess(false);
     setShowSuccessModal(false);
+    localStorage.removeItem('refundAmount');
   };
   
   // Close success modal
@@ -89,7 +108,9 @@ export const PaymentProvider = ({ children }) => {
     showSuccessModal,
     handlePaymentSuccess,
     resetPayment,
-    closeSuccessModal
+    closeSuccessModal,
+    // Add refund amount to context
+    refundAmount: localStorage.getItem('refundAmount') || '0'
   };
   
   return (

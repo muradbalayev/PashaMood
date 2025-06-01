@@ -35,6 +35,7 @@ const Profile = () => {
     showSuccessModal,
     paymentAmount: successAmount,
     orderAmount,
+    refundAmount,
     closeSuccessModal: handleCloseSuccessModal,
   } = usePayment();
 
@@ -785,20 +786,18 @@ const Profile = () => {
               <p className="text-gray-600 mb-4">
                 Ödənişiniz uğurla həyata keçirildi.
               </p>
-              {orderAmount &&
-                parseFloat(successAmount) > parseFloat(orderAmount) && (
-                  <div className="bg-blue-50 text-blue-700 p-3 rounded-lg mb-6">
-                    <p>
-                      <span className="font-semibold">
-                        {(
-                          parseFloat(successAmount) - parseFloat(orderAmount)
-                        ).toFixed(2)}
-                        {userData.currency}
-                      </span>{" "}
-                      məbləğiniz hesabınıza geri qaytarıldı.
-                    </p>
-                  </div>
-                )}
+              {/* Show refund information if applicable */}
+              {parseFloat(refundAmount) > 0 && (
+                <div className="bg-blue-50 text-blue-700 p-3 rounded-lg mb-6">
+                  <p>
+                    <span className="font-semibold">
+                      {parseFloat(refundAmount).toFixed(2)}
+                      {userData.currency}
+                    </span>{" "}
+                    məbləğiniz hesabınıza geri qaytarıldı.
+                  </p>
+                </div>
+              )}
               <p className="text-gray-600 mb-6">
                 Ödəniş məbləği:{" "}
                 <span className="font-semibold">
@@ -806,6 +805,16 @@ const Profile = () => {
                   {userData.currency}
                 </span>
               </p>
+              {/* Show original payment amount if there was a refund */}
+              {parseFloat(refundAmount) > 0 && (
+                <p className="text-gray-500 mb-6 text-sm">
+                  İlkin ödəniş məbləği:{" "}
+                  <span className="font-medium">
+                    {parseFloat(successAmount).toFixed(2)}
+                    {userData.currency}
+                  </span>
+                </p>
+              )}
               <div className="border-t border-gray-200 pt-4">
                 <button
                   onClick={closeSuccessModal}

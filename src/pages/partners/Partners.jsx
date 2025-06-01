@@ -346,10 +346,21 @@ const Partners = () => {
       setOrderSuccess(true);
       setCart([]);
 
+      // Calculate refund if payment amount exceeds order amount
+      const paymentAmountNum = parseFloat(savedAmount);
+      const orderAmountNum = cartTotal;
+      const hasRefund = paymentAmountNum > orderAmountNum;
+      const refundAmount = hasRefund ? (paymentAmountNum - orderAmountNum).toFixed(2) : 0;
+
       // Set payment success flag and amounts in localStorage
       localStorage.setItem("paymentSuccess", "true");
       localStorage.setItem("paymentAmount", savedAmount); // Keep amount for success message
       localStorage.setItem("orderAmount", cartTotal.toString()); // Store order amount for refund calculation
+
+      // Store refund information if applicable
+      if (hasRefund) {
+        localStorage.setItem("refundAmount", refundAmount);
+      }
 
       // Clear payment code data
       localStorage.removeItem("tempCode");
@@ -438,7 +449,7 @@ const Partners = () => {
         <div className="mx-auto px-4 md:px-8 lg:px-16 py-4 flex justify-between items-center">
           <div className="flex items-center">
             <Link to="/">
-              <div className="bg-white rounded-full p-2 mr-2 w-36 md:w-44">
+              <div className="bg-white rounded-full p-2 mr-2 sm:w-36 w-28 md:w-44">
                 <img
                   src="/logo.png"
                   alt="PashaMood"
@@ -447,12 +458,12 @@ const Partners = () => {
               </div>
             </Link>
           </div>
-          <div className="flex items-center space-x-4">
+          <div className="flex items-center sm:gap-4 gap-2">
             <button
               onClick={() => navigate("/profile")}
               className="flex items-center text-white hover:text-gray-200 transition-colors"
             >
-              <FaUserCircle className="mr-2" size={20} />
+              <FaUserCircle size={20} />
               <span className="hidden md:inline">My Profile</span>
             </button>
             <button
@@ -522,7 +533,7 @@ const Partners = () => {
       </div>
 
       {/* Main Content */}
-      <div className="container mx-auto lg:px-16 px-8 py-8">
+      <div className="container mx-auto lg:px-16 sm:px-8 px-4 py-8 overflow-hidden">
         {activeShop ? (
           <div>
             <div className="flex items-center justify-between mb-6">
@@ -858,22 +869,22 @@ const Partners = () => {
               </div>
             ) : (
               <div>
-                <div className="p-6 bg-gradient-to-r from-[#007d56] to-[#005a3e] text-white rounded-t-2xl">
-                  <h2 className="text-xl font-bold flex items-center">
+                <div className="sm:p-6 p-3 bg-gradient-to-r from-[#007d56] to-[#005a3e] text-white rounded-t-2xl">
+                  <h2 className="md:text-xl text-lg font-bold flex items-center">
                     <FaCreditCard className="mr-3" />
                     Complete Your Purchase
                   </h2>
                 </div>
                 <div className="p-8">
                   {!paymentMethod ? (
-                    <div className="p-8">
+                    <div className="md:p-8">
                       <h3 className="font-medium mb-4 text-lg">
                         Select Payment Method
                       </h3>
                       <div className="space-y-3">
                         <button
                           onClick={() => handlePaymentMethodSelect("visa")}
-                          className="w-full p-4 border border-gray-200 rounded-xl flex items-center hover:bg-gray-50 transition-colors group"
+                          className="w-full sm:p-4 p-3 border border-gray-200 rounded-xl flex items-center hover:bg-gray-50 transition-colors group"
                         >
                           <div className="bg-blue-50 rounded-lg p-2 mr-4 group-hover:bg-blue-100 transition-colors h-10">
                             <img
@@ -882,7 +893,7 @@ const Partners = () => {
                               className="h-full w-full object-contain"
                             />
                           </div>
-                          <span className="font-medium">Pay with Visa</span>
+                          <span className="font-medium text-sm md:text-base">Pay with Visa</span>
                         </button>
                         <button
                           onClick={() =>
@@ -897,7 +908,7 @@ const Partners = () => {
                               className="h-full w-full object-contain"
                             />
                           </div>
-                          <span className="font-medium">
+                          <span className="font-medium text-sm md:text-base">
                             Pay with Mastercard
                           </span>
                         </button>
@@ -912,7 +923,7 @@ const Partners = () => {
                               className="h-full w-full object-contain"
                             />
                           </div>
-                          <span className="font-medium">Pay with PayPal</span>
+                          <span className="font-medium text-sm md:text-base">Pay with PayPal</span>
                         </button>
                         <button
                           onClick={() => handlePaymentMethodSelect("pashamood")}
@@ -925,7 +936,7 @@ const Partners = () => {
                               className="h-full w-full object-contain"
                             />
                           </div>
-                          <span className="font-medium text-[#007d56]">
+                          <span className="font-medium text-[#007d56] text-sm md:text-base">
                             Pay with PashaMood
                           </span>
                         </button>
@@ -935,7 +946,7 @@ const Partners = () => {
                     <div className="">
                       <button
                         onClick={() => setPaymentMethod("")}
-                        className="text-[#007d56] hover:text-[#005a3e] font-medium mb-6 flex items-center px-4 py-2 rounded-lg hover:bg-[#f5fbf9] transition-all"
+                        className="text-[#007d56] hover:text-[#005a3e] font-medium mb-6 flex items-center px-4 py-2 rounded-lg hover:bg-[#f5fbf9] transition-all text-sm md:text-base"
                       >
                         <FaArrowLeft className="mr-2" />
                         Back to payment methods
@@ -946,7 +957,7 @@ const Partners = () => {
                           <FaInfoCircle className="mr-2" />
                           Enter PashaMood Code
                         </h3>
-                        <p className="text-gray-600">
+                        <p className="text-gray-600 text-sm md:text-base">
                           Enter the 6-digit code generated in your PashaMood app
                           to complete your purchase securely.
                         </p>
@@ -962,7 +973,7 @@ const Partners = () => {
                       ) : (
                         <>
                           <div className="mb-6">
-                            <div className="flex justify-center space-x-3">
+                            <div className="flex justify-center space-x-1 sm:space-x-2 md:space-x-3">
                               {Array(6)
                                 .fill()
                                 .map((_, index) => (
@@ -978,7 +989,7 @@ const Partners = () => {
                                     ref={(el) =>
                                       (codeInputRefs.current[index] = el)
                                     }
-                                    className="w-12 h-14 border-2 border-gray-300 rounded-lg text-center text-xl font-bold focus:border-[#007d56] focus:ring-2 focus:ring-[#e6f2ee] focus:outline-none transition-all shadow-sm"
+                                    className="w-9 h-9 sm:w-10 sm:h-12 md:w-12 md:h-14 border-2 border-gray-300 rounded-lg text-center text-lg sm:text-xl font-bold focus:border-[#007d56] focus:ring-2 focus:ring-[#e6f2ee] focus:outline-none transition-all shadow-sm"
                                     onPaste={(e) => {
                                       e.preventDefault();
                                       const pasteData = e.clipboardData
