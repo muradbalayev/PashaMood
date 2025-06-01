@@ -141,11 +141,6 @@ const City = () => {
 
   useEffect(() => {
     // Check if user is logged in
-    const loggedIn = localStorage.getItem('isLoggedIn') === 'true';
-    if (!loggedIn) {
-      navigate('/auth/login');
-      return;
-    }
 
     // Set initial coins from localStorage or default
     const savedCoins = localStorage.getItem('pashaCoins');
