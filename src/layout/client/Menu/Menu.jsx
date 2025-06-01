@@ -187,10 +187,10 @@ const Menu = ({ isOpen, setIsOpen, isDark }) => {
 
   return (
     <div className={`menu px-7`}>
-      <div className={`menu-bar  py-4 px-6  ${isHomePage ? "dark" : "bg-white"}`} >
+      <div className={`menu-bar  py-4 sm:px-6 px-4  ${isHomePage ? "dark" : "bg-white"}`} >
         <div className="">
           <Link
-            className="flex items-center w-44"
+            className="flex items-center md:w-44 w-28 "
             to="/"
             onClick={handleNavigation("/")} 
           >
@@ -206,13 +206,12 @@ const Menu = ({ isOpen, setIsOpen, isDark }) => {
             }`}
           >
             <User
-              size={28}
-              className={` ${!isHomePage ? "text-white" : "text-white"}`}
+              className={` ${!isHomePage ? "text-white" : "text-white"} sm:size-7 `}
             />
           </Link>
           <p
             onClick={handleMenuOpen}
-            className={` px-4 py-2 rounded-full border bg-[#007d56] font-semibold ${
+            className={` px-4 py-2 rounded-full border bg-[#007d56] font-semibold sm:text-[24px] text-[20px] ${
               !isHomePage ? "text-white" : "text-white"
             }`}
           >

@@ -33,7 +33,7 @@ const Hero = () => {
     <section className="w-full">
       {/* Hero Section */}
       <section className='relative w-full overflow-hidden'>
-        <div className='w-full min-h-[80vh] max-w-[1440px] mx-auto lg:px-16 md:px-8 px-4 py-16 md:py-24 flex flex-col md:flex-row items-center justify-between'>
+        <div className='w-full sm:min-h-[80vh] min-h-[95vh] max-w-[1440px] mx-auto lg:px-16 md:px-8 px-4 py-16 md:py-24 flex flex-col md:flex-row items-center justify-between'>
           <div className='w-full md:w-1/2 text-left z-10 mb-10 md:mb-0'>
             <Copy delay={0}>
               <div className="inline-block px-4 py-1 bg-[#e6f2ee] rounded-full mb-4">
@@ -63,7 +63,7 @@ const Hero = () => {
               <div className="relative">
                 <div className="absolute -top-10 -left-10 w-40 h-40 bg-[#007d56] opacity-10 rounded-full"></div>
                 <div className="absolute -bottom-5 -right-5 w-24 h-24 bg-[#c50b30] opacity-10 rounded-full"></div>
-                <div className="bg-white p-8 rounded-2xl shadow-2xl relative z-10">
+                 <div className="bg-white sm:p-8 p-6 rounded-2xl shadow-2xl relative z-10">
                   <div className="flex justify-between items-center mb-8">
                     <div className="w-12 h-12 bg-[#e6f2ee] rounded-full flex items-center justify-center">
                       <FaCreditCard className="text-[#007d56] text-xl" />
@@ -179,7 +179,7 @@ const Hero = () => {
           </div>
           
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
-            <div className="bg-white p-8 rounded-3xl shadow-md">
+            <div className="bg-white p-6 sm:p-8 rounded-3xl shadow-md">
               <form className="space-y-6">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div>
