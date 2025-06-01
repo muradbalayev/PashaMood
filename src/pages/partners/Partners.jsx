@@ -14,6 +14,7 @@ import {
 import Transition from "../../components/Transition";
 import toast, { Toaster } from "react-hot-toast";
 import { FaArrowLeft, FaMinus, FaPlus, FaTrash } from "react-icons/fa6";
+import { useTransactions } from "../../context/useTransactions";
 
 const Partners = () => {
   const navigate = useNavigate();
@@ -29,6 +30,9 @@ const Partners = () => {
   const [verificationError, setVerificationError] = useState("");
   const [isVerifying, setIsVerifying] = useState(false);
   const codeInputRefs = useRef(Array(6).fill(null));
+  
+  // Use transaction context
+  const { addTransaction } = useTransactions();
 
   useEffect(() => {
     // Check if user is logged in
@@ -344,23 +348,48 @@ const Partners = () => {
       // If all checks pass, process payment
       setIsVerifying(false);
       setOrderSuccess(true);
-      setCart([]);
-
+      
       // Calculate refund if payment amount exceeds order amount
       const paymentAmountNum = parseFloat(savedAmount);
       const orderAmountNum = cartTotal;
       const hasRefund = paymentAmountNum > orderAmountNum;
       const refundAmount = hasRefund ? (paymentAmountNum - orderAmountNum).toFixed(2) : 0;
-
+      
       // Set payment success flag and amounts in localStorage
       localStorage.setItem("paymentSuccess", "true");
       localStorage.setItem("paymentAmount", savedAmount); // Keep amount for success message
       localStorage.setItem("orderAmount", cartTotal.toString()); // Store order amount for refund calculation
-
+      
       // Store refund information if applicable
       if (hasRefund) {
         localStorage.setItem("refundAmount", refundAmount);
       }
+
+      // Add transaction for each item in cart
+      cart.forEach(item => {
+        const shopName = activeShop?.name || 'Online Store';
+        addTransaction({
+          merchant: `${shopName} - ${item.name}`,
+          amount: -item.price * item.quantity,
+          category: activeShop?.category || 'Shopping',
+          quantity: item.quantity,
+          productId: item.id,
+          productName: item.name
+        });
+      });
+      
+      // If there was a refund, add a refund transaction
+      if (hasRefund) {
+        addTransaction({
+          merchant: 'PashaMood Refund',
+          amount: parseFloat(refundAmount),
+          category: 'Refund',
+          description: 'Automatic refund for payment exceeding order amount'
+        });
+      }
+      
+      // Clear cart
+      setCart([]);
 
       // Clear payment code data
       localStorage.removeItem("tempCode");

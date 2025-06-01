@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { FaRobot, FaPaperPlane, FaTimes } from 'react-icons/fa';
-import { BsEmojiSmile, BsEmojiSunglasses, BsEmojiHeartEyes } from 'react-icons/bs';
+import { BsEmojiSmile, BsEmojiSunglasses, BsEmojiHeartEyes, BsEmojiAngry } from 'react-icons/bs';
 
 const MistralChatbot = ({ isOpen, onClose, userData }) => {
   const [chatCharacter, setChatCharacter] = useState(null);
@@ -60,24 +60,73 @@ const MistralChatbot = ({ isOpen, onClose, userData }) => {
     }
   };
   
-  // Get character-specific prompt
+  // Get character-specific prompt with transaction data
   const getCharacterPrompt = (character, userInput) => {
+    // Prepare transaction data for the AI
+    const transactionData = userData?.recentTransactions || [];
+    
+    // Calculate some basic analytics
+    let totalSpent = 0;
+    let totalIncome = 0;
+    const categories = {};
+    const merchants = {};
+    
+    transactionData.forEach(transaction => {
+      if (transaction.amount < 0) {
+        totalSpent += Math.abs(transaction.amount);
+        
+        // Count by category
+        if (!categories[transaction.category]) {
+          categories[transaction.category] = 0;
+        }
+        categories[transaction.category] += Math.abs(transaction.amount);
+        
+        // Count by merchant
+        if (!merchants[transaction.merchant]) {
+          merchants[transaction.merchant] = 0;
+        }
+        merchants[transaction.merchant] += Math.abs(transaction.amount);
+      } else {
+        totalIncome += transaction.amount;
+      }
+    });
+    
+    // Format transaction data for the prompt
+    const transactionSummary = `
+Transaction Summary:
+- Total Spent: ${userData?.currency || '₼'}${totalSpent.toFixed(2)}
+- Total Income: ${userData?.currency || '₼'}${totalIncome.toFixed(2)}
+- Balance: ${userData?.currency || '₼'}${userData?.balance?.toFixed(2) || '2450.75'}
+- Transaction Count: ${transactionData.length}
+`;
+    
+    // Create a list of recent transactions
+    const recentTransactionsList = transactionData.slice(0, 5).map(t => {
+      return `- ${t.date}: ${t.merchant}, ${t.amount < 0 ? '-' : '+'}${userData?.currency || '₼'}${Math.abs(t.amount).toFixed(2)}, Category: ${t.category}`;
+    }).join('\n');
+    
+    // Prepare the base prompt with user data and transactions
+    const basePrompt = `${userInput}\n\nUser Data:\n- Name: ${userData?.name || 'User'}
+- Email: ${userData?.email || 'user@example.com'}
+- Balance: ${userData?.currency || '₼'}${userData?.balance?.toFixed(2) || '2450.75'}\n${transactionSummary}\n\nRecent Transactions:\n${recentTransactionsList}`;
+    
+    // Add character-specific instructions
     if (character === "happy") {
-      return `😊 Neşəli bank chatbotu kimi, pozitiv cavab ver:\n${userInput}\nİstifadəçinin balansı: ${userData?.currency || '₼'}${userData?.balance?.toFixed(2) || '2450.75'}`;
-    } else if (character === "sad") {
-      return `🤗 Empatik bank chatbotu kimi, diqqətli və dəstək verici cavab ver:\n${userInput}\nİstifadəçinin balansı: ${userData?.currency || '₼'}${userData?.balance?.toFixed(2) || '2450.75'}`;
-    } else if (character === "cool") {
-      return `😎 Havalı, sadə və qısa cavab ver:\n${userInput}\nİstifadəçinin balansı: ${userData?.currency || '₼'}${userData?.balance?.toFixed(2) || '2450.75'}`;
+      return `😊 Neşəli bank chatbotu kimi, pozitiv cavab ver. Əgər istifadəçi xərcləri, transaksiyaları və ya maliyyə məsləhəti haqqında soruşsa, verilən məlumatlardan istifadə et:\n${basePrompt}`;
+    } else if (character === "normal") {
+      return `🤗 Empatik bank chatbotu kimi, diqqətli və dəstək verici cavab ver. Əgər istifadəçi xərcləri, transaksiyaları və ya maliyyə məsləhəti haqqında soruşsa, verilən məlumatlardan istifadə et:\n${basePrompt}`;
+    } else if (character === "angry") {
+      return `😡 Müştəri əsəbiləşib və narahatdır. Onu sakitləşdirməyə çalış və insan kimi empatiya göstər. Əgər istifadəçi xərcləri, transaksiyaları və ya maliyyə məsləhəti haqqında soruşsa, verilən məlumatlardan istifadə et. Cavabların:\n- Yumşaq və sakitləşdirici tonda olsun\n- Hisslərini başa düşdüyünü göstər\n- Söz verdiyin kömək barədə konkret danış\n- Lazımsız rəsmi cümlələrdən uzaq dur\n${basePrompt}`;
     } else {
-      return userInput;
+      return basePrompt;
     }
   };
   
   // Colors for different chat bubble styles
   const chatColors = {
     happy: { bg: "#d4edda", text: "#155724" },
-    sad: { bg: "#fff3cd", text: "#856404" },
-    cool: { bg: "#d1ecf1", text: "#0c5460" },
+    normal: { bg: "#fff3cd", text: "#856404" },
+    angry: { bg: "#d1ecf1", text: "#0c5460" },
     user: { bg: "#cce5ff", text: "#004085" }
   };
   
@@ -136,7 +185,7 @@ const MistralChatbot = ({ isOpen, onClose, userData }) => {
             <div className="flex justify-between items-center">
               <div className="flex items-center">
                 <FaRobot className="mr-2" />
-                <h3 className="font-bold inter">Pasha Bank Chatbot</h3>
+                <h3 className="font-bold inter">Pasha Mood Chatbot</h3>
               </div>
               <button 
                 onClick={onClose}
@@ -158,21 +207,21 @@ const MistralChatbot = ({ isOpen, onClose, userData }) => {
                     className="flex flex-col items-center justify-center p-3 rounded-lg border-2 border-transparent hover:border-[#007d56] transition-all"
                   >
                     <BsEmojiSmile className="text-3xl text-yellow-500 mb-2" />
-                    <span className="inter"> Nəşəli</span>
+                    <span className="inter"> Zarafatçıl</span>
                   </button>
                   <button
-                    onClick={() => setChatCharacter('sad')}
+                    onClick={() => setChatCharacter('normal')}
                     className="flex flex-col items-center justify-center p-3 rounded-lg border-2 border-transparent hover:border-[#007d56] transition-all"
                   >
                     <BsEmojiHeartEyes className="text-3xl text-yellow-500 mb-2" />
-                    <span className="inter"> Dəstəkçi</span>
+                    <span className="inter"> Standart</span>
                   </button>
                   <button
-                    onClick={() => setChatCharacter('cool')}
+                    onClick={() => setChatCharacter('angry')}
                     className="flex flex-col items-center justify-center p-3 rounded-lg border-2 border-transparent hover:border-[#007d56] transition-all"
                   >
-                    <BsEmojiSunglasses className="text-3xl text-yellow-500 mb-2" />
-                    <span className="inter"> Cool</span>
+                    <BsEmojiAngry className="text-3xl text-yellow-500 mb-2" />
+                    <span className="inter"> Əsəbi</span>
                   </button>
                 </div>
               </div>

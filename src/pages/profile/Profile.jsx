@@ -12,6 +12,7 @@ import {
 import { FaChartPie, FaMoneyBill } from "react-icons/fa6";
 import toast, { Toaster } from "react-hot-toast";
 import { usePayment } from "../../context/usePayment";
+import { useTransactions } from "../../context/useTransactions";
 import Transition from "../../components/Transition";
 import MistralChatbot from "../../components/chatbot/MistralChatbot";
 import { motion } from "framer-motion";
@@ -38,6 +39,9 @@ const Profile = () => {
     refundAmount,
     closeSuccessModal: handleCloseSuccessModal,
   } = usePayment();
+
+  // Use transactions context
+  const { transactions } = useTransactions();
 
   // Set up polling to check for payment success in real-time across tabs
   useEffect(() => {
@@ -103,43 +107,8 @@ const Profile = () => {
     email: localStorage.getItem("userEmail") || "user@example.com",
     balance: 2450.75,
     currency: "₼",
-    recentTransactions: [
-      {
-        id: 1,
-        merchant: "Bravo Supermarket",
-        amount: -45.2,
-        date: "2025-05-29",
-        category: "Groceries",
-      },
-      {
-        id: 2,
-        merchant: "Netflix",
-        amount: -15.99,
-        date: "2025-05-28",
-        category: "Entertainment",
-      },
-      {
-        id: 3,
-        merchant: "Salary Deposit",
-        amount: 1200.0,
-        date: "2025-05-25",
-        category: "Income",
-      },
-      {
-        id: 4,
-        merchant: "Starbucks",
-        amount: -8.5,
-        date: "2025-05-24",
-        category: "Food",
-      },
-      {
-        id: 5,
-        merchant: "Amazon",
-        amount: -129.99,
-        date: "2025-05-22",
-        category: "Shopping",
-      },
-    ],
+    // Use dynamic transactions from context
+    recentTransactions: transactions,
     cashbackOffers: [
       {
         id: 1,
@@ -386,11 +355,11 @@ const Profile = () => {
                       </h3>
                       <p className="text-gray-600">
                         Last transaction:{" "}
-                        {userData.recentTransactions[0].merchant}
+                        {userData.recentTransactions[0]?.merchant}
                       </p>
                       <p className="text-gray-600">
                         {userData.currency}
-                        {Math.abs(userData.recentTransactions[0].amount)}
+                        {Math.abs(userData.recentTransactions[0]?.amount)}
                       </p>
                     </div>
                     <div className="bg-green-50 p-4 rounded-xl">
@@ -401,7 +370,7 @@ const Profile = () => {
                         Total cashback: {userData.currency}45.30
                       </p>
                       <p className="text-gray-600">
-                        New offers: {userData.cashbackOffers.length}
+                        New offers: {userData.cashbackOffers?.length}
                       </p>
                     </div>
                     <div className="bg-yellow-50 p-4 rounded-xl">
@@ -409,10 +378,10 @@ const Profile = () => {
                         Investment Tips
                       </h3>
                       <p className="text-gray-600">
-                        Recommended: {userData.investmentSuggestions[0].name}
+                        Recommended: {userData.investmentSuggestions[0]?.name}
                       </p>
                       <p className="text-gray-600">
-                        Potential: {userData.investmentSuggestions[0].potential}
+                        Potential: {userData.investmentSuggestions[0]?.potential}
                       </p>
                     </div>
                   </div>
@@ -789,32 +758,32 @@ const Profile = () => {
               {/* Show refund information if applicable */}
               {parseFloat(refundAmount) > 0 && (
                 <div className="bg-blue-50 text-blue-700 p-3 rounded-lg mb-6">
-                  <p>
+                  {/* <p>
                     <span className="font-semibold">
                       {parseFloat(refundAmount).toFixed(2)}
                       {userData.currency}
                     </span>{" "}
                     məbləğiniz hesabınıza geri qaytarıldı.
+                  </p> */}
+                {parseFloat(refundAmount) > 0 && (
+                  <p className="text-gray-500">
+                    Ödəniş məbləği:{" "}
+                    <span className="font-medium">
+                      {parseFloat(successAmount).toFixed(2)}
+                      {userData.currency}
+                    </span>
                   </p>
+                )}
                 </div>
               )}
-              <p className="text-gray-600 mb-6">
+              {/* <p className="text-gray-600 mb-6">
                 Ödəniş məbləği:{" "}
                 <span className="font-semibold">
                   {parseFloat(orderAmount || successAmount).toFixed(2)}
                   {userData.currency}
                 </span>
-              </p>
+              </p> */}
               {/* Show original payment amount if there was a refund */}
-              {parseFloat(refundAmount) > 0 && (
-                <p className="text-gray-500 mb-6 text-sm">
-                  İlkin ödəniş məbləği:{" "}
-                  <span className="font-medium">
-                    {parseFloat(successAmount).toFixed(2)}
-                    {userData.currency}
-                  </span>
-                </p>
-              )}
               <div className="border-t border-gray-200 pt-4">
                 <button
                   onClick={closeSuccessModal}
